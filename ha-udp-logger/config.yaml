@@ -1,6 +1,7 @@
 name: "UDP Log Collector"
-version: "1.0.2"
+version: "1.0.3"
 slug: "udp_log_collector"
+init: false
 description: "Сбор UDP логов с ротацией"
 url: "https://github.com/sclsat/HA_repo/tree/main/ha-udp-logger"
 arch:
@@ -28,4 +29,5 @@ schema:
   log_level: "list(debug|info|warning|error)"
 map:
   - config:rw
-  - share:rwssl:ro
+  - ssl:ro
+  - share:rw
