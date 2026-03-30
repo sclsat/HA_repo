@@ -13,9 +13,9 @@ startup: "application"
 boot: "auto"
 host_network: true
 ports:
-  8881/udp: 8881
+  45678/udp: 45678
 ports_description:
-  8881/udp: "UDP порт для приема логов"
+  45678/udp: "UDP port for log collection"
 options:
   log_dir: "/data/logs"
   max_size_mb: 10
@@ -28,5 +28,4 @@ schema:
   log_level: "list(debug|info|warning|error)"
 map:
   - config:rw
-  - share:rw
-  - ssl:ro
+  - share:rwssl:ro
