@@ -13,9 +13,9 @@ startup: "application"
 boot: "auto"
 host_network: true
 ports:
-  45678/udp: 45678
+  8881/udp: 8881
 ports_description:
-  45678/udp: "UDP port for log collection"
+  8881/udp: "UDP port for log collection"
 options:
   log_dir: "/data/logs"
   max_size_mb: 10
