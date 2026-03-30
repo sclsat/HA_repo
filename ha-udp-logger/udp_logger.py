@@ -5,9 +5,10 @@ import sys
 import argparse
 import logging
 import os
-from datetime import datetime
+import time
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
+from datetime import datetime
 
 class UDPLogCollector:
     def __init__(self, log_dir="/data/logs", max_size_mb=10, rotate_count=5, log_level="info"):
@@ -19,95 +20,117 @@ class UDPLogCollector:
         self.rotate_count = rotate_count
         
         self.running = True
-        self.socket = None
         
         # Настройка логирования
         self.setup_logging(log_level)
         
     def setup_logging(self, log_level):
-        """Настройка системы логирования"""
+        """Настройка логирования"""
         level = getattr(logging, log_level.upper())
         
         # Лог для UDP сообщений
-        self.udp_logger = logging.getLogger('udp_logger')
-        self.udp_logger.setLevel(logging.DEBUG)
+        self.udp_logger = logging.getLogger('udp')
+        self.udp_logger.setLevel(logging.INFO)
         
+        # Файловый обработчик с ротацией
         log_file = self.log_dir / 'ha_udp.log'
-        handler = RotatingFileHandler(
+        file_handler = RotatingFileHandler(
             log_file,
             maxBytes=self.max_size,
             backupCount=self.rotate_count,
             encoding='utf-8'
         )
-        
-        formatter = logging.Formatter('%(asctime)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.udp_logger.addHandler(handler)
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+        self.udp_logger.addHandler(file_handler)
         
         # Служебный лог
         self.service_logger = logging.getLogger('service')
         self.service_logger.setLevel(level)
         
-        # Консольный вывод
+        # Вывод в консоль (для логов аддона)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         self.service_logger.addHandler(console_handler)
         
-        # Файловый лог
-        service_log_file = self.log_dir / 'collector.log'
+        # Файл со служебными сообщениями
+        service_file = self.log_dir / 'collector.log'
         service_handler = RotatingFileHandler(
-            service_log_file,
+            service_file,
             maxBytes=5*1024*1024,
             backupCount=3
         )
         service_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         self.service_logger.addHandler(service_handler)
         
-    def handle_signal(self, signum, frame):
-        """Обработка сигналов"""
-        self.service_logger.info(f"Получен сигнал {signum}, остановка...")
+    def signal_handler(self, signum, frame):
+        """Обработчик сигналов"""
+        self.service_logger.info(f"Received signal {signum}, stopping...")
         self.running = False
-        if self.socket:
-            self.socket.close()
-        sys.exit(0)
-    
-    def start(self):
-        """Запуск коллектора"""
-        signal.signal(signal.SIGTERM, self.handle_signal)
-        signal.signal(signal.SIGINT, self.handle_signal)
         
+    def start(self):
+        """Запуск сервера"""
+        # Устанавливаем обработчики сигналов
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
+        
+        # Создаем UDP сокет
         try:
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.socket.bind(('0.0.0.0', self.port))
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind(('0.0.0.0', self.port))
             
-            self.service_logger.info(f"Коллектор запущен на порту {self.port}")
-            self.service_logger.info(f"Логи пишутся в: {self.log_dir / 'ha_udp.log'}")
+            self.service_logger.info(f"UDP server started on port {self.port}")
+            self.service_logger.info(f"Logging to: {self.log_dir / 'ha_udp.log'}")
             
         except Exception as e:
-            self.service_logger.error(f"Ошибка: {e}")
+            self.service_logger.error(f"Failed to start server: {e}")
             sys.exit(1)
+        
+        # Статистика
+        counter = 0
+        last_report = time.time()
         
         # Основной цикл
         while self.running:
             try:
-                self.socket.settimeout(1.0)
-                data, addr = self.socket.recvfrom(65535)
-                message = data.decode('utf-8', errors='ignore').strip()
+                # Устанавливаем таймаут для возможности проверки self.running
+                sock.settimeout(1.0)
+                
+                # Принимаем данные
+                data, addr = sock.recvfrom(65535)
+                
+                # Декодируем сообщение
+                try:
+                    message = data.decode('utf-8', errors='ignore').strip()
+                except:
+                    message = str(data)
+                
+                # Записываем в лог
                 self.udp_logger.info(f"{addr[0]}:{addr[1]} - {message}")
+                counter += 1
+                
+                # Периодический отчет
+                now = time.time()
+                if now - last_report >= 60:
+                    self.service_logger.debug(f"Messages received in last minute: {counter}")
+                    counter = 0
+                    last_report = now
+                    
             except socket.timeout:
                 continue
             except Exception as e:
-                self.service_logger.error(f"Ошибка приема: {e}")
-                
-        self.service_logger.info("Коллектор остановлен")
+                self.service_logger.error(f"Error receiving data: {e}")
+                continue
+        
+        sock.close()
+        self.service_logger.info("UDP server stopped")
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='UDP Log Collector')
     parser.add_argument('--log-dir', default='/data/logs')
     parser.add_argument('--max-size-mb', type=int, default=10)
     parser.add_argument('--rotate-count', type=int, default=5)
-    parser.add_argument('--log-level', default='info')
+    parser.add_argument('--log-level', default='info', choices=['debug', 'info', 'warning', 'error'])
     
     args = parser.parse_args()
     
