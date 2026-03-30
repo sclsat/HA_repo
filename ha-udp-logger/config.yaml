@@ -1,5 +1,5 @@
 name: "UDP Log Collector"
-version: "1.0.4"
+version: "1.0.5"
 slug: "udp_log_collector"
 init: false
 description: "Сбор UDP логов с ротацией"
@@ -18,7 +18,7 @@ ports:
 ports_description:
   8881/udp: "UDP port for log collection"
 options:
-  log_dir: "/config/logs"
+  log_dir: "/share/udp_logs"
   max_size_mb: 10
   rotate_count: 5
   log_level: "info"
@@ -28,7 +28,5 @@ schema:
   rotate_count: "int(1,20)"
   log_level: "list(debug|info|warning|error)"
 map:
-  - type: addon_config
-    read_only: false
-    path: /config
   - ssl:ro
+  - share:rw
