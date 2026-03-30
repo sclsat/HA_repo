@@ -1,13 +1,14 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-# Установка Python если его нет
+# Установка Python
 RUN apk add --no-cache python3 py3-pip
 
-# Копируем файлы
-COPY run.sh /
+# Копируем Python скрипт
 COPY udp_logger.py /
-RUN chmod a+x /run.sh
+RUN chmod +x /udp_logger.py
 
-# Команда запуска
-CMD [ "/run.sh" ]
+# Используем bashio для логирования
+RUN mkdir -p /etc/services.d/udp-logger
+COPY run /etc/services.d/udp-logger/run
+RUN chmod +x /etc/services.d/udp-logger/run
