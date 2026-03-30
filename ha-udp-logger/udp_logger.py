@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
 class UDPLogCollector:
-    def __init__(self, log_dir="/data/logs", max_size_mb=10, rotate_count=5, log_level="info"):
+    def __init__(self, log_dir="/share/udp_logs", max_size_mb=10, rotate_count=5, log_level="info"):
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         
@@ -127,7 +127,7 @@ class UDPLogCollector:
 
 def main():
     parser = argparse.ArgumentParser(description='UDP Log Collector')
-    parser.add_argument('--log-dir', default='/data/logs')
+    parser.add_argument('--log-dir', default='/share/udp_logs')
     parser.add_argument('--max-size-mb', type=int, default=10)
     parser.add_argument('--rotate-count', type=int, default=5)
     parser.add_argument('--log-level', default='info', choices=['debug', 'info', 'warning', 'error'])
