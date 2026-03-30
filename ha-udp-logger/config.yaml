@@ -2,7 +2,7 @@ name: "UDP Log Collector"
 version: "1.0.0"
 slug: "udp_log_collector"
 description: "Сбор UDP логов с ротацией"
-url: "https://github.com/ваш-username/ваш-репозиторий/tree/main/ha-udp-logger"
+url: "https://github.com/sclsat/HA_repo/tree/main/ha-udp-logger"
 arch:
   - armhf
   - armv7
