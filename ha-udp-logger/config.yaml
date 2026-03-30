@@ -1,5 +1,5 @@
 name: "UDP Log Collector"
-version: "1.0.1"
+version: "1.0.2"
 slug: "udp_log_collector"
 description: "Сбор UDP логов с ротацией"
 url: "https://github.com/sclsat/HA_repo/tree/main/ha-udp-logger"
