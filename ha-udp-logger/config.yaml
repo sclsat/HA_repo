@@ -1,5 +1,5 @@
 name: "UDP Log Collector"
-version: "1.0.7"
+version: "1.0.8"
 slug: "udp_log_collector"
 init: false
 description: "Сбор UDP логов с ротацией"
@@ -15,12 +15,6 @@ arch:
 startup: "application"
 boot: "auto"
 host_network: true
-
-ports:
-  8881/udp: null
-
-ports_description:
-  8881/udp: "UDP port for log collection"
 
 options:
   log_dir: "/share/udp_logs"
