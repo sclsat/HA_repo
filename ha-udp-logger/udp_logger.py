@@ -15,7 +15,7 @@ class UDPLogCollector:
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         
-        self.port = 8881
+        self.port = port
         self.max_size = max_size_mb * 1024 * 1024
         self.rotate_count = rotate_count
         
@@ -131,6 +131,7 @@ def main():
     parser.add_argument('--max-size-mb', type=int, default=10)
     parser.add_argument('--rotate-count', type=int, default=5)
     parser.add_argument('--log-level', default='info', choices=['debug', 'info', 'warning', 'error'])
+    parser.add_argument('--port', type=int, default=8881)
     
     args = parser.parse_args()
     
@@ -138,7 +139,8 @@ def main():
         log_dir=args.log_dir,
         max_size_mb=args.max_size_mb,
         rotate_count=args.rotate_count,
-        log_level=args.log_level
+        log_level=args.log_level,
+        port=args.port
     )
     
     collector.start()
