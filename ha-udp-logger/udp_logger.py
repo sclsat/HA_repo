@@ -140,7 +140,7 @@ def main():
         max_size_mb=args.max_size_mb,
         rotate_count=args.rotate_count,
         log_level=args.log_level,
-        port=args.port,
+        port=args.port
     )
     
     collector.start()
