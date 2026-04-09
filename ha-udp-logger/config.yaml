@@ -1,32 +1,41 @@
 name: "UDP Log Collector"
-version: "1.0.5"
+version: "1.0.6"
 slug: "udp_log_collector"
 init: false
 description: "Сбор UDP логов с ротацией"
 url: "https://github.com/sclsat/HA_repo/tree/main/ha-udp-logger"
+
 arch:
   - armhf
   - armv7
   - aarch64
   - amd64
   - i386
+
 startup: "application"
 boot: "auto"
 host_network: true
+
 ports:
-  8881/udp: 8881
+  8881/udp: null
+
 ports_description:
   8881/udp: "UDP port for log collection"
+
 options:
   log_dir: "/share/udp_logs"
   max_size_mb: 10
   rotate_count: 5
   log_level: "info"
+  port: 8881
+
 schema:
   log_dir: "str"
   max_size_mb: "int(1,100)"
   rotate_count: "int(1,20)"
   log_level: "list(debug|info|warning|error)"
+  port: "port"
+
 map:
   - ssl:ro
   - share:rw
