@@ -1,5 +1,5 @@
 name: "UDP Log Collector"
-version: "1.0.6"
+version: "1.0.7"
 slug: "udp_log_collector"
 init: false
 description: "Сбор UDP логов с ротацией"
